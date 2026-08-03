@@ -1,0 +1,522 @@
+<Window x:Class="DrawAim.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:DrawAim.App.Controls"
+        Title="DrawAim — 绘画能力训练"
+        Width="1440" Height="900"
+        MinWidth="900" MinHeight="480"
+        WindowStartupLocation="CenterScreen"
+        PreviewKeyDown="Window_PreviewKeyDown"
+        Closing="Window_Closing"
+        Deactivated="Window_Deactivated"
+        DpiChanged="Window_DpiChanged">
+    <Grid x:Name="RootLayoutGrid">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="NavigationColumn" Width="210" />
+            <ColumnDefinition x:Name="ContentColumn" Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- 固定导航 -->
+        <Border Grid.Column="0" Background="{DynamicResource SidebarBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
+            <Grid Margin="14">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Margin="8,12,8,24">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="34" Height="34" CornerRadius="9"
+                                Background="{DynamicResource AccentBrush}">
+                            <TextBlock Text="D" FontSize="20" FontWeight="Bold"
+                                       Foreground="#102824" HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="DrawAim" FontSize="19" FontWeight="SemiBold" />
+                            <TextBlock Text="DRAWING TRAINER" FontSize="9"
+                                       Foreground="{DynamicResource MutedTextBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1">
+                    <Button Style="{StaticResource NavButton}" Tag="Home" Click="Navigate_Click" AutomationProperties.AutomationId="NavHome">
+                        <StackPanel Orientation="Horizontal"><TextBlock Text="⌂" Width="28" /><TextBlock Text="首页" /></StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource NavButton}" Tag="Mode1" Click="Navigate_Click" AutomationProperties.AutomationId="NavMode1">
+                        <StackPanel Orientation="Horizontal"><TextBlock Text="╱" Width="28" /><TextBlock Text="线条跟随" /></StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource NavButton}" Tag="Mode2" Click="Navigate_Click" AutomationProperties.AutomationId="NavMode2">
+                        <StackPanel Orientation="Horizontal"><TextBlock Text="◇" Width="28" /><TextBlock Text="观察复制" /></StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource NavButton}" Tag="Mode3" Click="Navigate_Click" AutomationProperties.AutomationId="NavMode3">
+                        <StackPanel Orientation="Horizontal"><TextBlock Text="◉" Width="28" /><TextBlock Text="颜色匹配" /></StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource NavButton}" Tag="Statistics" Click="Navigate_Click">
+                        <StackPanel Orientation="Horizontal"><TextBlock Text="▥" Width="28" /><TextBlock Text="训练统计" /></StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Grid.Row="3">
+                    <Border Style="{StaticResource Card}" Padding="12" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock Text="笔迹稳定" FontWeight="SemiBold" />
+                            <TextBlock Text="各模式独立记忆 0～100"
+                                       Style="{StaticResource MutedText}" FontSize="11" Margin="0,3,0,0" />
+                        </StackPanel>
+                    </Border>
+                    <Button x:Name="ThemeButton" AutomationProperties.AutomationId="ToggleTheme" Style="{StaticResource NavButton}"
+                            Click="ThemeButton_Click">
+                        <StackPanel Orientation="Horizontal"><TextBlock Text="◐" Width="28" /><TextBlock x:Name="ThemeButtonText" Text="切换浅色主题" /></StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 内容区 -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="64" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1"
+                    Background="{DynamicResource BackgroundBrush}">
+                <Grid Margin="24,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock x:Name="RouteTitle" Text="首页" FontWeight="SemiBold" FontSize="17" />
+                        <TextBlock x:Name="RouteSubtitle" Text="选择一项训练开始"
+                                   Style="{StaticResource MutedText}" FontSize="11" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="16" Padding="12,6" Margin="0,0,8,0">
+                            <TextBlock><Run Text="本次 "/><Run x:Name="TopCompletedText" Text="0" Foreground="{DynamicResource AccentBrush}"/><Run Text=" 题"/></TextBlock>
+                        </Border>
+                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="16" Padding="12,6">
+                            <TextBlock><Run Text="平均 "/><Run x:Name="TopAverageText" Text="—" Foreground="{DynamicResource BlueBrush}"/></TextBlock>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="1" x:Name="PageHost" Background="{DynamicResource BackgroundBrush}">
+                <!-- 首页 -->
+                <ScrollViewer x:Name="HomePage" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="30" MaxWidth="1180" HorizontalAlignment="Center">
+                        <Grid Margin="0,18,0,28">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="今天练什么？" Style="{StaticResource PageTitle}" />
+                                <TextBlock Text="每一题都可复现；评分关注你的最终答案，不关心设备采样快慢。"
+                                           Style="{StaticResource MutedText}" Margin="0,8,0,0" />
+                            </StackPanel>
+                            <Border Grid.Column="1" Style="{StaticResource Card}" Padding="18,10">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="SEED  " Style="{StaticResource MutedText}" />
+                                    <TextBlock x:Name="HomeSeedText" Text="20260803" FontFamily="Consolas" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <UniformGrid Columns="3" Margin="0,0,0,26">
+                            <Border Style="{StaticResource Card}" Margin="0,0,10,0" Padding="22">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                    <Border Width="44" Height="44" HorizontalAlignment="Left" CornerRadius="12" Background="#263D3B">
+                                        <TextBlock Text="╱" FontSize="25" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Row="1" Margin="0,22,0,24">
+                                        <TextBlock Text="线条跟随" FontSize="21" FontWeight="SemiBold" />
+                                        <TextBlock Text="一笔描完目标线，抬笔即提交。训练落点、控制和干净收尾。" Style="{StaticResource MutedText}" Margin="0,9,0,0" />
+                                        <TextBlock Text="准确度 · 覆盖率 · 平滑度 · 多余笔迹" Foreground="{DynamicResource AccentBrush}" FontSize="11" Margin="0,14,0,0" />
+                                    </StackPanel>
+                                    <Button Grid.Row="2" Content="开始训练" Style="{StaticResource PrimaryButton}" Tag="Mode1" Click="Navigate_Click" />
+                                </Grid>
+                            </Border>
+                            <Border Style="{StaticResource Card}" Margin="5,0" Padding="22">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                    <Border Width="44" Height="44" HorizontalAlignment="Left" CornerRadius="12" Background="#29344E">
+                                        <TextBlock Text="◇" FontSize="25" Foreground="{DynamicResource BlueBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Row="1" Margin="0,22,0,24">
+                                        <TextBlock Text="观察复制" FontSize="21" FontWeight="SemiBold" />
+                                        <TextBlock Text="观察多条线的位置、大小和关系，再在相同方格中复制。" Style="{StaticResource MutedText}" Margin="0,9,0,0" />
+                                        <TextBlock Text="只评价最终几何 · 手动提交" Foreground="{DynamicResource BlueBrush}" FontSize="11" Margin="0,14,0,0" />
+                                    </StackPanel>
+                                    <Button Grid.Row="2" Content="开始训练" Style="{StaticResource PrimaryButton}" Tag="Mode2" Click="Navigate_Click" />
+                                </Grid>
+                            </Border>
+                            <Border Style="{StaticResource Card}" Margin="10,0,0,0" Padding="22">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                    <Border Width="44" Height="44" HorizontalAlignment="Left" CornerRadius="12" Background="#44354C">
+                                        <TextBlock Text="◉" FontSize="24" Foreground="#D99DE8" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Row="1" Margin="0,22,0,24">
+                                        <TextBlock Text="颜色匹配" FontSize="21" FontWeight="SemiBold" />
+                                        <TextBlock Text="观察目标色，用色环和试色画布判断色相、明度与饱和度。" Style="{StaticResource MutedText}" Margin="0,9,0,0" />
+                                        <TextBlock Text="OKLab 感知色差 · 练习 / 测试" Foreground="#D99DE8" FontSize="11" Margin="0,14,0,0" />
+                                    </StackPanel>
+                                    <Button Grid.Row="2" Content="开始训练" Style="{StaticResource PrimaryButton}" Tag="Mode3" Click="Navigate_Click" />
+                                </Grid>
+                            </Border>
+                        </UniformGrid>
+
+                        <Border Style="{StaticResource Card}" Padding="22">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <StackPanel><TextBlock Text="训练题数" Style="{StaticResource MutedText}"/><TextBlock x:Name="HomeCompletedText" Text="0" Style="{StaticResource MetricValue}"/></StackPanel>
+                                <StackPanel Grid.Column="1"><TextBlock Text="本次平均" Style="{StaticResource MutedText}"/><TextBlock x:Name="HomeAverageText" Text="—" Style="{StaticResource MetricValue}" Foreground="{DynamicResource BlueBrush}"/></StackPanel>
+                                <StackPanel Grid.Column="2"><TextBlock Text="数据保存" Style="{StaticResource MutedText}"/><TextBlock Text="仅本机" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,0"/></StackPanel>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- 模式一 -->
+                <Grid x:Name="Mode1Page" Visibility="Collapsed" Margin="22">
+                    <Grid.ColumnDefinitions><ColumnDefinition x:Name="Mode1SettingsColumn" Width="250"/><ColumnDefinition Width="*"/><ColumnDefinition x:Name="Mode1ResultColumn" Width="230"/></Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource Card}" Margin="0,0,14,0" Padding="16">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock Text="题目设置" Style="{StaticResource SectionTitle}" />
+                                <TextBlock Text="线型" Style="{StaticResource MutedText}" />
+                                <ComboBox x:Name="Mode1LineKind" SelectedIndex="3" Margin="0,5,0,10" SelectionChanged="Mode1Settings_Changed">
+                                    <ComboBoxItem Content="仅直线"/><ComboBoxItem Content="仅 C 线"/><ComboBoxItem Content="仅 S 线"/><ComboBoxItem Content="按下方比例混合"/>
+                                </ComboBox>
+                                <TextBlock Text="混合线型相对权重" Style="{StaticResource MutedText}"/>
+                                <Grid Margin="0,3,0,0"><TextBlock Text="直线"/><TextBlock x:Name="Mode1StraightWeightText" Text="34" HorizontalAlignment="Right" Foreground="{DynamicResource AccentBrush}"/></Grid>
+                                <Slider x:Name="Mode1StraightWeight" AutomationProperties.AutomationId="Mode1StraightWeight" Minimum="0" Maximum="100" Value="34" ValueChanged="Mode1Settings_Changed"/>
+                                <Grid><TextBlock Text="C 线"/><TextBlock x:Name="Mode1CWeightText" Text="33" HorizontalAlignment="Right" Foreground="{DynamicResource AccentBrush}"/></Grid>
+                                <Slider x:Name="Mode1CWeight" AutomationProperties.AutomationId="Mode1CWeight" Minimum="0" Maximum="100" Value="33" ValueChanged="Mode1Settings_Changed"/>
+                                <Grid><TextBlock Text="S 线"/><TextBlock x:Name="Mode1SWeightText" Text="33" HorizontalAlignment="Right" Foreground="{DynamicResource AccentBrush}"/></Grid>
+                                <Slider x:Name="Mode1SWeight" AutomationProperties.AutomationId="Mode1SWeight" Minimum="0" Maximum="100" Value="33" ValueChanged="Mode1Settings_Changed" Margin="0,0,0,12"/>
+                                <TextBlock><Run Text="难度  "/><Run x:Name="Mode1DifficultyText" Text="5" Foreground="{DynamicResource AccentBrush}"/></TextBlock>
+                                <Slider x:Name="Mode1Difficulty" Minimum="1" Maximum="10" Value="5" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="Mode1Settings_Changed" Margin="0,5,0,14"/>
+                                <TextBlock><Run Text="目标长度  "/><Run x:Name="Mode1LengthText" Text="52%" Foreground="{DynamicResource AccentBrush}"/></TextBlock>
+                                <Slider x:Name="Mode1Length" Minimum="25" Maximum="80" Value="52" ValueChanged="Mode1Settings_Changed" Margin="0,5,0,14"/>
+                                <TextBlock><Run Text="曲率  "/><Run x:Name="Mode1CurvatureText" Text="18%" Foreground="{DynamicResource AccentBrush}"/></TextBlock>
+                                <Slider x:Name="Mode1Curvature" Minimum="5" Maximum="32" Value="18" ValueChanged="Mode1Settings_Changed" Margin="0,5,0,14"/>
+                                <TextBlock Text="方向范围（0° 向右）" Style="{StaticResource MutedText}"/>
+                                <Grid Margin="0,3,0,0"><TextBlock Text="最小角度"/><TextBlock x:Name="Mode1DirectionMinText" Text="0°" HorizontalAlignment="Right" Foreground="{DynamicResource AccentBrush}"/></Grid>
+                                <Slider x:Name="Mode1DirectionMin" AutomationProperties.AutomationId="Mode1DirectionMin" Minimum="0" Maximum="359" Value="0" ValueChanged="Mode1Settings_Changed"/>
+                                <Grid><TextBlock Text="最大角度"/><TextBlock x:Name="Mode1DirectionMaxText" Text="360°" HorizontalAlignment="Right" Foreground="{DynamicResource AccentBrush}"/></Grid>
+                                <Slider x:Name="Mode1DirectionMax" AutomationProperties.AutomationId="Mode1DirectionMax" Minimum="1" Maximum="360" Value="360" ValueChanged="Mode1Settings_Changed" Margin="0,0,0,12"/>
+                                <TextBlock><Run Text="你的作答笔宽  "/><Run x:Name="Mode1AnswerWidthText" Text="4.0 DIP" Foreground="{DynamicResource AccentBrush}"/></TextBlock>
+                                <Slider x:Name="Mode1AnswerWidth" AutomationProperties.AutomationId="Mode1AnswerWidth" Minimum="1" Maximum="24" Value="4" ValueChanged="Mode1Settings_Changed" Margin="0,5,0,14"/>
+                                <TextBlock><Run Text="目标参考线宽  "/><Run x:Name="Mode1TargetWidthText" Text="3.0 DIP" Foreground="{DynamicResource MutedTextBrush}"/></TextBlock>
+                                <Slider x:Name="Mode1TargetWidth" AutomationProperties.AutomationId="Mode1TargetWidth" Minimum="1" Maximum="12" Value="3" ValueChanged="Mode1Settings_Changed" Margin="0,5,0,14"/>
+                                <TextBlock><Run Text="容错  "/><Run x:Name="Mode1ToleranceText" Text="14 DIP" Foreground="{DynamicResource AccentBrush}"/></TextBlock>
+                                <Slider x:Name="Mode1Tolerance" Minimum="5" Maximum="30" Value="14" ValueChanged="Mode1Settings_Changed" Margin="0,5,0,14"/>
+                                <TextBlock><Run Text="笔迹稳定  "/><Run x:Name="Mode1StabilityText" Text="0 · 关闭" Foreground="{DynamicResource AccentBrush}"/></TextBlock>
+                                <Slider x:Name="Mode1Stability" Minimum="0" Maximum="100" Value="0" TickFrequency="1" ValueChanged="Mode1Stability_Changed" Margin="0,5,0,4"/>
+                                <UniformGrid Columns="5" Margin="0,0,0,14">
+                                    <Button Content="0" Padding="2" Tag="0" Click="Mode1StabilityPreset_Click"/><Button Content="25" Padding="2" Tag="25" Click="Mode1StabilityPreset_Click"/><Button Content="50" Padding="2" Tag="50" Click="Mode1StabilityPreset_Click"/><Button Content="75" Padding="2" Tag="75" Click="Mode1StabilityPreset_Click"/><Button Content="100" Padding="2" Tag="100" Click="Mode1StabilityPreset_Click"/>
+                                </UniformGrid>
+                                <CheckBox x:Name="Mode1ShowHint" Content="显示起点与推荐方向" IsChecked="True" Checked="Mode1Settings_Changed" Unchecked="Mode1Settings_Changed" />
+                                <TextBlock Text="随机种子" Style="{StaticResource MutedText}" Margin="0,14,0,4"/>
+                                <TextBox x:Name="Mode1Seed" AutomationProperties.AutomationId="Mode1Seed" Text="20260803" LostFocus="Mode1Settings_Changed" />
+                                <CheckBox x:Name="Mode1LockSeed" AutomationProperties.AutomationId="Mode1LockSeed" Content="锁定 Seed，复现题目序列" Checked="SeedLock_Changed" Unchecked="SeedLock_Changed"/>
+                                <TextBlock Text="未锁定时，每道新题都会生成新的 Seed。" Style="{StaticResource MutedText}" FontSize="11"/>
+                                <Button Content="按当前设置生成新题" AutomationProperties.AutomationId="NewMode1" Style="{StaticResource PrimaryButton}" Margin="0,18,0,0" Click="Mode1NewQuestion_Click" />
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                    <Grid Grid.Column="1" Margin="0,0,14,0">
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                        <Grid Margin="4,0,4,10">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="沿目标线一笔完成" FontSize="19" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="Mode1Instruction" Text="画布内任意位置落笔；抬笔后自动提交。" Style="{StaticResource MutedText}" FontSize="12"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Content="暂停" Margin="0,0,8,0" Click="Pause_Click"/>
+                                <Button Content="跳过 N" Click="Mode1Skip_Click"/>
+                            </StackPanel>
+                        </Grid>
+                        <Border Grid.Row="1" Background="{DynamicResource CanvasBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="12" ClipToBounds="True">
+                            <controls:GeometryStrokeCanvas x:Name="Mode1Canvas"
+                                                           AutomationProperties.AutomationId="CanvasMode1"
+                                                           AllowMultipleStrokes="False"
+                                                           BrushSize="4"
+                                                           UsePressure="True"
+                                                           Background="{DynamicResource CanvasBrush}"
+                                                           StrokeBrush="{DynamicResource CanvasStrokeBrush}"
+                                                           TargetBrush="{DynamicResource CanvasTargetBrush}"
+                                                           RecolorCommittedStrokesOnBrushChange="True"
+                                                           StrokeCompleted="Mode1Canvas_StrokeCompleted" />
+                        </Border>
+                        <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" CornerRadius="9" Margin="0,10,0,0" Padding="12,8">
+                            <Grid><TextBlock x:Name="Mode1LiveFeedback" Text="准备作答"/><TextBlock Text="任意方向均可" HorizontalAlignment="Right" Style="{StaticResource MutedText}"/></Grid>
+                        </Border>
+                    </Grid>
+
+                    <StackPanel Grid.Column="2">
+                        <Border Style="{StaticResource Card}" Padding="16" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="本题得分" Style="{StaticResource MutedText}"/>
+                                <TextBlock x:Name="Mode1TotalScore" Text="—" FontSize="48" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+                                <TextBlock x:Name="Mode1ResultHint" Text="抬笔后显示结果" Style="{StaticResource MutedText}"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Padding="16">
+                            <StackPanel>
+                                <TextBlock Text="分项" Style="{StaticResource SectionTitle}"/>
+                                <Grid Margin="0,4"><TextBlock Text="准确度"/><TextBlock x:Name="Mode1Accuracy" Text="—" HorizontalAlignment="Right" Foreground="{DynamicResource AccentBrush}"/></Grid>
+                                <ProgressBar x:Name="Mode1AccuracyBar" Height="5" Maximum="100" Margin="0,0,0,12"/>
+                                <Grid><TextBlock Text="覆盖率"/><TextBlock x:Name="Mode1Coverage" Text="—" HorizontalAlignment="Right" Foreground="{DynamicResource AccentBrush}"/></Grid>
+                                <ProgressBar x:Name="Mode1CoverageBar" Height="5" Maximum="100" Margin="0,0,0,12"/>
+                                <Grid><TextBlock Text="平滑度"/><TextBlock x:Name="Mode1Smoothness" Text="—" HorizontalAlignment="Right" Foreground="{DynamicResource AccentBrush}"/></Grid>
+                                <ProgressBar x:Name="Mode1SmoothnessBar" Height="5" Maximum="100" Margin="0,0,0,12"/>
+                                <Grid><TextBlock Text="多余笔迹"/><TextBlock x:Name="Mode1Economy" Text="—" HorizontalAlignment="Right" Foreground="{DynamicResource AccentBrush}"/></Grid>
+                                <ProgressBar x:Name="Mode1EconomyBar" Height="5" Maximum="100"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- 模式二 -->
+                <Grid x:Name="Mode2Page" Visibility="Collapsed" Margin="22">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="观察与复制线条组合" FontSize="21" FontWeight="SemiBold"/>
+                            <TextBlock Text="只比较提交时的最终几何；顺序、方向和分笔方式不影响评分。" Style="{StaticResource MutedText}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="14,8" Margin="0,0,8,0">
+                                <TextBlock><Run Text="实时接近  "/><Run x:Name="Mode2LiveScore" Text="0%" Foreground="{DynamicResource BlueBrush}" FontSize="18" FontWeight="SemiBold"/></TextBlock>
+                            </Border>
+                            <Button Content="完成并下一题  Enter" Style="{StaticResource PrimaryButton}" Click="Mode2Submit_Click" AutomationProperties.AutomationId="SubmitMode2"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="1" x:Name="Mode2TrainingGrid">
+                        <Grid.ColumnDefinitions><ColumnDefinition x:Name="Mode2SettingsColumn" Width="220"/><ColumnDefinition Width="*"/><ColumnDefinition x:Name="Mode2ResultColumn" Width="220"/></Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource Card}" Margin="0,0,14,0" Padding="15">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel>
+                                <TextBlock Text="组合设置" Style="{StaticResource SectionTitle}"/>
+                                <TextBlock><Run Text="固定数量  "/><Run x:Name="Mode2CountText" Text="5" Foreground="{DynamicResource BlueBrush}"/></TextBlock>
+                                <Slider x:Name="Mode2LineCount" Minimum="1" Maximum="10" Value="5" IsSnapToTickEnabled="True" TickFrequency="1" ValueChanged="Mode2Settings_Changed" Margin="0,4,0,6"/>
+                                <CheckBox x:Name="Mode2UseCountRange" AutomationProperties.AutomationId="Mode2UseCountRange" Content="改用随机数量范围" Checked="Mode2Settings_Changed" Unchecked="Mode2Settings_Changed"/>
+                                <Grid Margin="0,5,0,0"><TextBlock Text="最少"/><TextBlock x:Name="Mode2MinCountText" Text="3" HorizontalAlignment="Right" Foreground="{DynamicResource BlueBrush}"/></Grid>
+                                <Slider x:Name="Mode2MinCount" AutomationProperties.AutomationId="Mode2MinCount" Minimum="1" Maximum="10" Value="3" IsSnapToTickEnabled="True" TickFrequency="1" IsEnabled="False" ValueChanged="Mode2Settings_Changed"/>
+                                <Grid><TextBlock Text="最多"/><TextBlock x:Name="Mode2MaxCountText" Text="7" HorizontalAlignment="Right" Foreground="{DynamicResource BlueBrush}"/></Grid>
+                                <Slider x:Name="Mode2MaxCount" AutomationProperties.AutomationId="Mode2MaxCount" Minimum="1" Maximum="10" Value="7" IsSnapToTickEnabled="True" TickFrequency="1" IsEnabled="False" ValueChanged="Mode2Settings_Changed" Margin="0,0,0,12"/>
+                                <TextBlock Text="线型相对权重" Style="{StaticResource MutedText}"/>
+                                <Grid Margin="0,3,0,0"><TextBlock Text="直线"/><TextBlock x:Name="Mode2StraightWeightText" Text="34" HorizontalAlignment="Right" Foreground="{DynamicResource BlueBrush}"/></Grid>
+                                <Slider x:Name="Mode2StraightWeight" Minimum="0" Maximum="100" Value="34" ValueChanged="Mode2Settings_Changed"/>
+                                <Grid><TextBlock Text="C 线"/><TextBlock x:Name="Mode2CWeightText" Text="33" HorizontalAlignment="Right" Foreground="{DynamicResource BlueBrush}"/></Grid>
+                                <Slider x:Name="Mode2CWeight" Minimum="0" Maximum="100" Value="33" ValueChanged="Mode2Settings_Changed"/>
+                                <Grid><TextBlock Text="S 线"/><TextBlock x:Name="Mode2SWeightText" Text="33" HorizontalAlignment="Right" Foreground="{DynamicResource BlueBrush}"/></Grid>
+                                <Slider x:Name="Mode2SWeight" Minimum="0" Maximum="100" Value="33" ValueChanged="Mode2Settings_Changed" Margin="0,0,0,12"/>
+                                <TextBlock><Run Text="难度  "/><Run x:Name="Mode2DifficultyText" Text="5" Foreground="{DynamicResource BlueBrush}"/></TextBlock>
+                                <Slider x:Name="Mode2Difficulty" Minimum="1" Maximum="10" Value="5" IsSnapToTickEnabled="True" TickFrequency="1" ValueChanged="Mode2Settings_Changed" Margin="0,4,0,14"/>
+                                <Grid><TextBlock Text="最短长度"/><TextBlock x:Name="Mode2MinLengthText" Text="17%" HorizontalAlignment="Right" Foreground="{DynamicResource BlueBrush}"/></Grid>
+                                <Slider x:Name="Mode2MinLength" Minimum="10" Maximum="70" Value="17" ValueChanged="Mode2Settings_Changed"/>
+                                <Grid><TextBlock Text="最长长度"/><TextBlock x:Name="Mode2MaxLengthText" Text="46%" HorizontalAlignment="Right" Foreground="{DynamicResource BlueBrush}"/></Grid>
+                                <Slider x:Name="Mode2MaxLength" Minimum="10" Maximum="70" Value="46" ValueChanged="Mode2Settings_Changed" Margin="0,0,0,12"/>
+                                <Grid><TextBlock Text="最小曲率"/><TextBlock x:Name="Mode2MinCurvatureText" Text="5%" HorizontalAlignment="Right" Foreground="{DynamicResource BlueBrush}"/></Grid>
+                                <Slider x:Name="Mode2MinCurvature" Minimum="0" Maximum="45" Value="5" ValueChanged="Mode2Settings_Changed"/>
+                                <Grid><TextBlock Text="最大曲率"/><TextBlock x:Name="Mode2MaxCurvatureText" Text="23%" HorizontalAlignment="Right" Foreground="{DynamicResource BlueBrush}"/></Grid>
+                                <Slider x:Name="Mode2MaxCurvature" Minimum="0" Maximum="45" Value="23" ValueChanged="Mode2Settings_Changed" Margin="0,0,0,12"/>
+                                <TextBlock><Run Text="笔迹稳定  "/><Run x:Name="Mode2StabilityText" Text="0 · 关闭" Foreground="{DynamicResource BlueBrush}"/></TextBlock>
+                                <Slider x:Name="Mode2Stability" Minimum="0" Maximum="100" Value="0" ValueChanged="Mode2Stability_Changed" Margin="0,4,0,14"/>
+                                <CheckBox x:Name="Mode2AllowIntersections" Content="允许参考线相交" Checked="Mode2Settings_Changed" Unchecked="Mode2Settings_Changed"/>
+                                <TextBlock Text="随机种子" Style="{StaticResource MutedText}" Margin="0,12,0,4"/>
+                                <TextBox x:Name="Mode2Seed" AutomationProperties.AutomationId="Mode2Seed" Text="20260803" LostFocus="Mode2Settings_Changed"/>
+                                <CheckBox x:Name="Mode2LockSeed" AutomationProperties.AutomationId="Mode2LockSeed" Content="锁定 Seed，复现题目序列" Checked="SeedLock_Changed" Unchecked="SeedLock_Changed"/>
+                                <Button Content="生成新组合" AutomationProperties.AutomationId="NewMode2" Margin="0,16,0,0" Click="Mode2NewQuestion_Click"/>
+                                <Separator Margin="0,18" Background="{DynamicResource BorderBrush}"/>
+                                <UniformGrid Columns="2">
+                                    <Button Content="撤销" AutomationProperties.AutomationId="UndoMode2" Margin="0,0,4,5" Click="Mode2Undo_Click"/><Button Content="重做" AutomationProperties.AutomationId="RedoMode2" Margin="4,0,0,5" Click="Mode2Redo_Click"/>
+                                </UniformGrid>
+                                <Button Content="清空答案" AutomationProperties.AutomationId="ClearMode2" Click="Mode2Clear_Click"/>
+                            </StackPanel>
+                            </ScrollViewer>
+                        </Border>
+
+                        <Grid Grid.Column="1" x:Name="Mode2SquareArea" SizeChanged="Mode2SquareArea_SizeChanged">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="参考图" HorizontalAlignment="Center" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <Border x:Name="Mode2ReferenceHost" Width="420" Height="420" Background="{DynamicResource CanvasBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="7" ClipToBounds="True">
+                                    <controls:GeometryStrokeCanvas x:Name="Mode2ReferenceCanvas" IsHitTestVisible="False" Background="{DynamicResource CanvasBrush}" TargetBrush="{DynamicResource CanvasTargetBrush}" BrushSize="3" StrokeBrush="{DynamicResource CanvasStrokeBrush}" />
+                                </Border>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="你的答案" HorizontalAlignment="Center" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <Border x:Name="Mode2AnswerHost" Width="420" Height="420" Background="{DynamicResource CanvasBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" CornerRadius="7" ClipToBounds="True">
+                                    <controls:GeometryStrokeCanvas x:Name="Mode2Canvas" AutomationProperties.AutomationId="CanvasMode2" AllowMultipleStrokes="True" Background="{DynamicResource CanvasBrush}" BrushSize="3.5" UsePressure="True" StrokeBrush="{DynamicResource CanvasStrokeBrush}" RecolorCommittedStrokesOnBrushChange="True" StrokeCompleted="Mode2Canvas_StrokeCompleted" />
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Grid.Column="2" Style="{StaticResource Card}" Margin="14,0,0,0" Padding="15">
+                            <StackPanel>
+                                <TextBlock Text="误差分析" Style="{StaticResource SectionTitle}"/>
+                                <TextBlock Text="总接近" Style="{StaticResource MutedText}"/><TextBlock x:Name="Mode2TotalScore" Text="—" Style="{StaticResource MetricValue}" Foreground="{DynamicResource BlueBrush}" Margin="0,0,0,14"/>
+                                <Grid Margin="0,4"><TextBlock Text="参考覆盖"/><TextBlock x:Name="Mode2Coverage" Text="—" HorizontalAlignment="Right"/></Grid>
+                                <Grid Margin="0,4"><TextBlock Text="答案精度"/><TextBlock x:Name="Mode2Precision" Text="—" HorizontalAlignment="Right"/></Grid>
+                                <Grid Margin="0,4"><TextBlock Text="多余几何"/><TextBlock x:Name="Mode2Extra" Text="—" HorizontalAlignment="Right"/></Grid>
+                                <Grid Margin="0,4"><TextBlock Text="位置误差"/><TextBlock x:Name="Mode2Position" Text="—" HorizontalAlignment="Right"/></Grid>
+                                <Grid Margin="0,4"><TextBlock Text="长度误差"/><TextBlock x:Name="Mode2LengthError" Text="—" HorizontalAlignment="Right"/></Grid>
+                                <TextBlock x:Name="Mode2ResultHint" Text="画完后手动提交" Style="{StaticResource MutedText}" Margin="0,16,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                    <Border x:Name="Mode2Footer" Grid.Row="2" Style="{StaticResource Card}" Padding="12,8" Margin="234,12,234,0">
+                        <Grid><TextBlock x:Name="Mode2Status" Text="可以用任意顺序和方向绘制"/><TextBlock x:Name="Mode2FooterShortcut" Text="Ctrl+Z 撤销 · Delete 清空" HorizontalAlignment="Right" Style="{StaticResource MutedText}"/></Grid>
+                    </Border>
+                </Grid>
+
+                <!-- 模式三 -->
+                <Grid x:Name="Mode3Page" Visibility="Collapsed" Margin="22" Background="#35383C">
+                    <Grid.ColumnDefinitions><ColumnDefinition x:Name="Mode3PickerColumn" Width="340"/><ColumnDefinition Width="*"/><ColumnDefinition x:Name="Mode3ResultColumn" Width="245"/></Grid.ColumnDefinitions>
+                    <Border Background="#2D3034" BorderBrush="#555A60" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,14,0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock Text="选择颜色" FontSize="18" FontWeight="SemiBold" Foreground="#F7F7F7" Margin="0,0,0,12"/>
+                                <controls:HsvColorPicker x:Name="Mode3ColorPicker" AutomationProperties.AutomationId="PickerMode3" Width="290" Height="290" HorizontalAlignment="Center" SelectedColorChanged="Mode3ColorPicker_SelectedColorChanged" />
+                                <Grid Margin="0,14,0,8"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                    <StackPanel Margin="0,0,6,0"><TextBlock Text="目标" Foreground="#D0D3D6"/><Border x:Name="Mode3TargetSwatch" Height="62" CornerRadius="7" BorderBrush="#74787D" BorderThickness="1" Margin="0,5,0,0"/></StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="6,0,0,0"><TextBlock Text="当前选择" Foreground="#D0D3D6"/><Border x:Name="Mode3PlayerSwatch" Height="62" CornerRadius="7" BorderBrush="#74787D" BorderThickness="1" Margin="0,5,0,0"/></StackPanel>
+                                </Grid>
+                                <TextBlock x:Name="Mode3ColorCode" Text="#FFFFFF · HSV 0°, 0%, 100%" Foreground="#D0D3D6" FontFamily="Consolas" FontSize="11"/>
+                                <Grid Margin="0,14,0,0"><TextBlock Text="笔刷大小" Foreground="#F7F7F7"/><TextBlock x:Name="Mode3BrushText" Text="36" HorizontalAlignment="Right" Foreground="#D99DE8"/></Grid>
+                                <Slider x:Name="Mode3BrushSize" Minimum="4" Maximum="120" Value="36" ValueChanged="Mode3BrushSize_Changed"/>
+                                <Grid Margin="0,10,0,0"><TextBlock Text="笔迹稳定" Foreground="#F7F7F7"/><TextBlock x:Name="Mode3StabilityText" Text="0 · 关闭" HorizontalAlignment="Right" Foreground="#D99DE8"/></Grid>
+                                <Slider x:Name="Mode3Stability" Minimum="0" Maximum="100" Value="0" ValueChanged="Mode3Stability_Changed"/>
+                                <Grid Margin="0,10,0,0"><TextBlock Text="目标难度" Foreground="#F7F7F7"/><TextBlock x:Name="Mode3DifficultyText" Text="5" HorizontalAlignment="Right" Foreground="#D99DE8"/></Grid>
+                                <Slider x:Name="Mode3Difficulty" Minimum="1" Maximum="10" Value="5" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="Mode3Settings_Changed"/>
+                                <UniformGrid Columns="2" Margin="0,4,0,0">
+                                    <CheckBox x:Name="Mode3IncludeWhite" Content="接近纯白" Foreground="#F7F7F7" Checked="Mode3Settings_Changed" Unchecked="Mode3Settings_Changed"/>
+                                    <CheckBox x:Name="Mode3IncludeBlack" Content="接近纯黑" Foreground="#F7F7F7" Checked="Mode3Settings_Changed" Unchecked="Mode3Settings_Changed"/>
+                                </UniformGrid>
+                                <CheckBox x:Name="Mode3IncludeLowChroma" Content="包含低饱和／低彩度颜色" IsChecked="True" Foreground="#F7F7F7" Checked="Mode3Settings_Changed" Unchecked="Mode3Settings_Changed"/>
+                                <TextBlock Text="随机种子" Foreground="#D0D3D6" Margin="0,8,0,4"/>
+                                <TextBox x:Name="Mode3Seed" AutomationProperties.AutomationId="Mode3Seed" Text="20260803" Foreground="#17191C" Background="#F0F1F2" LostFocus="Mode3Settings_Changed"/>
+                                <CheckBox x:Name="Mode3LockSeed" AutomationProperties.AutomationId="Mode3LockSeed" Content="锁定 Seed，复现题目序列" Foreground="#F7F7F7" Checked="SeedLock_Changed" Unchecked="SeedLock_Changed"/>
+                                <CheckBox x:Name="Mode3PracticeMode" AutomationProperties.AutomationId="Mode3PracticeMode" Content="练习模式：实时显示接近度" IsChecked="True" Foreground="#F7F7F7" Checked="Mode3PracticeMode_Changed" Unchecked="Mode3PracticeMode_Changed" Margin="0,12,0,0"/>
+                                <Button x:Name="Mode3SubmitButton" AutomationProperties.AutomationId="SubmitMode3" Content="提交当前颜色  Enter" Style="{StaticResource PrimaryButton}" Margin="0,16,0,0" Click="Mode3Submit_Click"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                    <Grid Grid.Column="1" Margin="0,0,14,0">
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                        <Grid Margin="4,0,4,10"><TextBlock Text="试色画布" Foreground="#F7F7F7" FontSize="19" FontWeight="SemiBold"/><TextBlock Text="画布内容不参与评分" HorizontalAlignment="Right" Foreground="#C7CACE" VerticalAlignment="Center"/></Grid>
+                        <Border Grid.Row="1" Background="#777A7D" BorderBrush="#555A60" BorderThickness="1" CornerRadius="11" ClipToBounds="True">
+                            <controls:GeometryStrokeCanvas x:Name="Mode3Canvas" AutomationProperties.AutomationId="CanvasMode3" AllowMultipleStrokes="True" Background="#777A7D" BrushSize="36" UsePressure="True" StrokeBrush="White"/>
+                        </Border>
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+                            <Button x:Name="Mode3UndoButton" Content="撤销  Ctrl+Z" Margin="0,0,8,0" Click="Mode3Undo_Click"/><Button x:Name="Mode3RedoButton" Content="重做  Ctrl+Y" Margin="0,0,8,0" Click="Mode3Redo_Click"/><Button x:Name="Mode3ClearButton" Content="清空  Delete" Click="Mode3Clear_Click"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Grid.Column="2" Background="#2D3034" BorderBrush="#555A60" BorderThickness="1" CornerRadius="12" Padding="17">
+                        <StackPanel>
+                            <TextBlock Text="颜色分析" Foreground="#F7F7F7" FontSize="17" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="Mode3Similarity" Text="—" FontSize="48" FontWeight="SemiBold" Foreground="#D99DE8" Margin="0,12,0,0"/>
+                            <TextBlock x:Name="Mode3SimilarityHint" Text="选择并提交颜色" Foreground="#C7CACE" Margin="0,0,0,18"/>
+                            <Grid Margin="0,5"><TextBlock Text="感知色差 ΔE" Foreground="#E9EAEB"/><TextBlock x:Name="Mode3DeltaE" Text="—" HorizontalAlignment="Right" Foreground="#F7F7F7"/></Grid>
+                            <Grid Margin="0,5"><TextBlock Text="明度 ΔL" Foreground="#E9EAEB"/><TextBlock x:Name="Mode3DeltaL" Text="—" HorizontalAlignment="Right" Foreground="#F7F7F7"/></Grid>
+                            <Grid Margin="0,5"><TextBlock Text="感知彩度 ΔC" Foreground="#E9EAEB"/><TextBlock x:Name="Mode3DeltaC" Text="—" HorizontalAlignment="Right" Foreground="#F7F7F7"/></Grid>
+                            <Grid Margin="0,5"><TextBlock Text="HSV 饱和度 ΔS" Foreground="#E9EAEB"/><TextBlock x:Name="Mode3DeltaS" Text="—" HorizontalAlignment="Right" Foreground="#F7F7F7"/></Grid>
+                            <Grid Margin="0,5"><TextBlock Text="HSV 明度 ΔV" Foreground="#E9EAEB"/><TextBlock x:Name="Mode3DeltaV" Text="—" HorizontalAlignment="Right" Foreground="#F7F7F7"/></Grid>
+                            <Grid Margin="0,5"><TextBlock Text="色相 Δh" Foreground="#E9EAEB"/><TextBlock x:Name="Mode3DeltaH" Text="—" HorizontalAlignment="Right" Foreground="#F7F7F7"/></Grid>
+                            <Button x:Name="Mode3NewButton" AutomationProperties.AutomationId="NewMode3" Content="下一题  N" Margin="0,22,0,0" Click="Mode3NewQuestion_Click"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- 统计 -->
+                <ScrollViewer x:Name="StatisticsPage" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="30" MaxWidth="1050" HorizontalAlignment="Center">
+                        <TextBlock Text="训练统计" Style="{StaticResource PageTitle}" Margin="0,12,0,5"/>
+                        <TextBlock Text="成绩按模式和稳定辅助分别记录。" Style="{StaticResource MutedText}" Margin="0,0,0,22"/>
+                        <UniformGrid Columns="3" Margin="0,0,0,16">
+                            <Border Style="{StaticResource Card}" Margin="0,0,6,0"><StackPanel><TextBlock Text="本次完成" Style="{StaticResource MutedText}"/><TextBlock x:Name="StatsCompleted" Text="0" Style="{StaticResource MetricValue}"/></StackPanel></Border>
+                            <Border Style="{StaticResource Card}" Margin="3,0"><StackPanel><TextBlock Text="本次平均" Style="{StaticResource MutedText}"/><TextBlock x:Name="StatsAverage" Text="—" Style="{StaticResource MetricValue}" Foreground="{DynamicResource BlueBrush}"/></StackPanel></Border>
+                            <Border Style="{StaticResource Card}" Margin="6,0,0,0"><StackPanel><TextBlock Text="本次单题最高" Style="{StaticResource MutedText}"/><TextBlock x:Name="StatsBest" Text="—" Style="{StaticResource MetricValue}" Foreground="{DynamicResource WarningBrush}"/></StackPanel></Border>
+                        </UniformGrid>
+                        <Border Style="{StaticResource Card}" Padding="20">
+                            <Grid>
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                <TextBlock Text="最近成绩" Style="{StaticResource SectionTitle}"/>
+                                <ListView x:Name="RecentScoresList" Grid.Row="1" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextBrush}" MinHeight="260">
+                                    <ListView.View>
+                                        <GridView>
+                                            <GridViewColumn Header="时间" DisplayMemberBinding="{Binding Time}" Width="170"/>
+                                            <GridViewColumn Header="模式" DisplayMemberBinding="{Binding Mode}" Width="150"/>
+                                            <GridViewColumn Header="得分" DisplayMemberBinding="{Binding Score}" Width="100"/>
+                                            <GridViewColumn Header="稳定" DisplayMemberBinding="{Binding Stability}" Width="100"/>
+                                            <GridViewColumn Header="Seed / 题号" DisplayMemberBinding="{Binding Identity}" Width="220"/>
+                                        </GridView>
+                                    </ListView.View>
+                                </ListView>
+                            </Grid>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Padding="20" Margin="0,16,0,0">
+                            <Grid>
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="可比条件最佳成绩" Style="{StaticResource SectionTitle}"/>
+                                    <TextBlock Text="按模式、评分版本、题目设置与稳定等级分别统计，不混排辅助成绩。" Style="{StaticResource MutedText}" FontSize="11" Margin="0,-6,0,10"/>
+                                </StackPanel>
+                                <ListView x:Name="GroupedBestList" Grid.Row="1" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextBrush}" MinHeight="180">
+                                    <ListView.View>
+                                        <GridView>
+                                            <GridViewColumn Header="模式" DisplayMemberBinding="{Binding Mode}" Width="130"/>
+                                            <GridViewColumn Header="稳定等级" DisplayMemberBinding="{Binding Stability}" Width="100"/>
+                                            <GridViewColumn Header="评分版本" DisplayMemberBinding="{Binding ScoringVersion}" Width="150"/>
+                                            <GridViewColumn Header="设置" DisplayMemberBinding="{Binding Settings}" Width="360"/>
+                                            <GridViewColumn Header="最佳" DisplayMemberBinding="{Binding Score}" Width="90"/>
+                                        </GridView>
+                                    </ListView.View>
+                                </ListView>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- 首次引导 -->
+                <Grid x:Name="FirstRunOverlay" Background="#B510141C" Visibility="Collapsed">
+                    <Border Style="{StaticResource Card}" Width="540" Padding="28" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <StackPanel>
+                            <TextBlock Text="欢迎使用 DrawAim" Style="{StaticResource PageTitle}"/>
+                            <TextBlock Text="三件事先记住" Style="{StaticResource MutedText}" Margin="0,6,0,20"/>
+                            <TextBlock Text="1  线条跟随：任意位置落笔，第一次抬笔自动提交。" Margin="0,6"/>
+                            <TextBlock Text="2  观察复制：只看最终几何，画完后手动提交。" Margin="0,6"/>
+                            <TextBlock Text="3  颜色匹配：提交当前选中色，试色画布不参与评分。" Margin="0,6"/>
+                            <TextBlock Text="笔迹稳定 0 是完全关闭，100 是强烈修线；它不会读取或吸附目标。" Foreground="{DynamicResource AccentBrush}" Margin="0,16,0,20"/>
+                            <Button Content="开始训练" Style="{StaticResource PrimaryButton}" Click="CloseGuide_Click" AutomationProperties.AutomationId="GuideStart"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- 暂停 -->
+                <Grid x:Name="PauseOverlay" Background="#C510141C" Visibility="Collapsed">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="已暂停" FontSize="34" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                        <TextBlock Text="按 Space 继续" Style="{StaticResource MutedText}" HorizontalAlignment="Center" Margin="0,8,0,18"/>
+                        <Button Content="继续训练" Style="{StaticResource PrimaryButton}" Click="Pause_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\DrawAim.Core\DrawAim.Core.csproj" />
+    <ProjectReference Include="..\DrawAim.Infrastructure\DrawAim.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <AssemblyName>DrawAim</AssemblyName>
+    <RootNamespace>DrawAim.App</RootNamespace>
+    <Version>0.1.1</Version>
+    <AssemblyTitle>DrawAim</AssemblyTitle>
+    <Product>DrawAim 绘画能力训练</Product>
+    <Description>离线的线条控制、观察复制与颜色判断训练软件</Description>
+    <Authors>DrawAim</Authors>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <SatelliteResourceLanguages>zh-CN</SatelliteResourceLanguages>
+    <TieredCompilation>true</TieredCompilation>
+  </PropertyGroup>
+
+</Project>
