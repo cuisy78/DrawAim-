@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DrawAim.App/DrawAim.App.csproj" />
+    <Project Path="src/DrawAim.Core/DrawAim.Core.csproj" />
+    <Project Path="src/DrawAim.Infrastructure/DrawAim.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DrawAim.Tests/DrawAim.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,20 @@
+# Build output
+bin/
+obj/
+artifacts/
+TestResults/
+
+# Project-local toolchain and caches
+.dotnet-sdk/
+.dotnet-home/
+.nuget/
+.dotnet-install.ps1
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Local application data used by smoke tests
+.smoke-data/
+*.log
